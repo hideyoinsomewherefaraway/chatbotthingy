@@ -1,5 +1,2 @@
 # chatbotthingy
 
-ass
-
-see that
