@@ -23,3 +23,10 @@ class Item(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="items")
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    mId = Column(Integer, primary_key = True, index = True)
+    content = Column(String, index=True)
+    is_stupid_question = Column(Boolean, default=True)

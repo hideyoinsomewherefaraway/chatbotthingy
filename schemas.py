@@ -34,3 +34,16 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+class MessageBase(BaseModel):
+    content: str
+    is_stupid_question: bool
+
+class MessageCreate(MessageBase):
+    pass
+
+class Message(MessageBase):
+    mId: int
+
+    class Config:
+        from_attributes = True
