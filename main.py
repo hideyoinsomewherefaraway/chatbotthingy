@@ -6,8 +6,9 @@ import models
 import schemas
 from database import SessionLocal, engine
 import uvicorn
-
 import openai
+from openai import AzureOpenAI
+
 import os
 
 
@@ -15,7 +16,8 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 OPENAI_API_KEY = "ad33664c1f7342258684cb9e65659f39"
-
+AZURE_OPENAI_API_KEY="ad33664c1f7342258684cb9e65659f39"
+AZURE_OPENAI_ENDPOINT="https://iwaicosmo-openai.openai.azure.com/"
 
 @app.get("/")
 async def root():
@@ -30,7 +32,16 @@ def get_db():
         db.close()
 
 # OpenAIのAPIキーを設定
-openai.api_key = os.getenv("OPENAI_API_KEY")
+#openai.api_key = os.getenv("OPENAI_API_KEY")
+
+openai = AzureOpenAI(
+    #api_key=os.getenv("AZURE_OPENAI_API_KEY")
+    api_key="ad33664c1f7342258684cb9e65659f39" ,  
+    api_version="2024-02-01",
+    #azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    azure_endpoint="https://iwaicosmo-openai.openai.azure.com/" 
+    )
+
 
 @app.post("/chat/", response_model=List[schemas.Message])
 def chat_with_ai(message: schemas.MessageCreate, db: Session = Depends(get_db)):
