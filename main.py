@@ -14,7 +14,7 @@ import os
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
-
+OPENAI_API_KEY = "ad33664c1f7342258684cb9e65659f39"
 
 
 @app.get("/")
@@ -38,7 +38,7 @@ def chat_with_ai(message: schemas.MessageCreate, db: Session = Depends(get_db)):
     user_message = crud.create_message(db=db, message=message)
     
     # OpenAI APIを使用して回答を生成（新しいAPIを使用）
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
@@ -47,7 +47,9 @@ def chat_with_ai(message: schemas.MessageCreate, db: Session = Depends(get_db)):
     )
     
     # AIからの回答を保存
-    ai_message_content = response.choices[0].message['content'].strip()
+    ai_message_content = response.choices[0].message.content
+    # AIからの回答を保存
+    ai_message_content = response.choices[0].message.content
     ai_message = schemas.MessageCreate(content=ai_message_content, is_stupid_question=False)
     crud.create_message(db=db, message=ai_message)
     
@@ -108,6 +110,7 @@ def delete_messages(db: Session = Depends(get_db)):
 
 
 if __name__ == '__main__':
+    print("OpenAI API Key:", openai.api_key)
     uvicorn.run(app=app)
 
 
