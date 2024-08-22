@@ -30,3 +30,4 @@ class Message(Base):
     mId = Column(Integer, primary_key = True, index = True)
     content = Column(String, index=True)
     is_stupid_question = Column(Boolean, default=True)
+    role = Column(String, index=True)

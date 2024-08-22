@@ -36,7 +36,7 @@ def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
     return db_item
 
 def create_message(db: Session, message: schemas.MessageCreate):
-    db_message = models.Message(content=message.content, is_stupid_question=message.is_stupid_question)
+    db_message = models.Message(content=message.content, is_stupid_question=message.is_stupid_question, role=message.role)
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
@@ -48,3 +48,6 @@ def get_all_messages(db: Session, skip: int = 0, limit: int = 100):
 def delete_all_messages(db: Session):
     db.query(models.Message).delete()
     db.commit()
+
+def get_latest_messages(db: Session, limit: int = 10):
+    return db.query(models.Message).order_by(models.Message.mId.desc()).limit(limit).all()

@@ -9,6 +9,7 @@ import uvicorn
 import openai
 from openai import AzureOpenAI
 
+import requests
 import os
 
 
@@ -46,11 +47,13 @@ openai = AzureOpenAI(
 @app.post("/chat/", response_model=List[schemas.Message])
 def chat_with_ai(message: schemas.MessageCreate, db: Session = Depends(get_db)):
     # ユーザーメッセージを保存
-    user_message = crud.create_message(db=db, message=message)
-    
+    #user_message = crud.create_message(db=db, message=message)
+    user_message = schemas.MessageCreate(content=message.content, is_stupid_question=message.is_stupid_question, role="user")
+    crud.create_message(db=db, message=user_message)
+
     # OpenAI APIを使用して回答を生成（新しいAPIを使用）
     response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="aoai_3516",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": message.content},
@@ -61,7 +64,7 @@ def chat_with_ai(message: schemas.MessageCreate, db: Session = Depends(get_db)):
     ai_message_content = response.choices[0].message.content
     # AIからの回答を保存
     ai_message_content = response.choices[0].message.content
-    ai_message = schemas.MessageCreate(content=ai_message_content, is_stupid_question=False)
+    ai_message = schemas.MessageCreate(content=ai_message_content, is_stupid_question=False, role="assistant")
     crud.create_message(db=db, message=ai_message)
     
     # これまでのメッセージ一覧を取得
@@ -119,9 +122,14 @@ def delete_messages(db: Session = Depends(get_db)):
     crud.delete_all_messages(db=db)
     return {"message": "All messages deleted"}  
 
+@app.get("/latest-messages/", response_model=List[schemas.Message])
+def read_latest_messages(db: Session = Depends(get_db)):
+    messages = crud.get_latest_messages(db=db)
+    return messages
+
 
 if __name__ == '__main__':
-    print("OpenAI API Key:", openai.api_key)
+    
     uvicorn.run(app=app)
 
 

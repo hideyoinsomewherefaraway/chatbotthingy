@@ -38,6 +38,7 @@ class User(UserBase):
 class MessageBase(BaseModel):
     content: str
     is_stupid_question: bool
+    role: str
 
 class MessageCreate(MessageBase):
     pass
