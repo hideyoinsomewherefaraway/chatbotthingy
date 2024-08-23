@@ -43,7 +43,6 @@ openai = AzureOpenAI(
     azure_endpoint="https://iwaicosmo-openai.openai.azure.com/" 
     )
 
-
 @app.post("/chat/", response_model=List[schemas.Message])
 def chat_with_ai(message: schemas.MessageCreate, db: Session = Depends(get_db)):
     # ユーザーメッセージを保存
@@ -51,17 +50,32 @@ def chat_with_ai(message: schemas.MessageCreate, db: Session = Depends(get_db)):
     user_message = schemas.MessageCreate(content=message.content, is_stupid_question=message.is_stupid_question, role="user")
     crud.create_message(db=db, message=user_message)
 
+     # 最新メッセージを取得してリスト形式に変換
+    msgs = crud.get_latest_messages(db=db)
+
+    # msgsを「role」と「content」をキーとした辞書型のリストに整形
+    formatted_msgs = [{"role": msg.role, "content": msg.content} for msg in msgs]
+
+    # ユーザーメッセージを追加
+    formatted_msgs.append({"role": "user", "content": message.content}) 
+
+
     # OpenAI APIを使用して回答を生成（新しいAPIを使用）
-    response = openai.chat.completions.create(
+    '''response = openai.chat.completions.create(
         model="aoai_3516",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": message.content},
+           # {"role": "system","content":msg}
         ]
+    )'''
+
+    response = openai.chat.completions.create(
+        model="aoai_3516",
+        messages=formatted_msgs
     )
     
-    # AIからの回答を保存
-    ai_message_content = response.choices[0].message.content
+
     # AIからの回答を保存
     ai_message_content = response.choices[0].message.content
     ai_message = schemas.MessageCreate(content=ai_message_content, is_stupid_question=False, role="assistant")
@@ -126,6 +140,7 @@ def delete_messages(db: Session = Depends(get_db)):
 def read_latest_messages(db: Session = Depends(get_db)):
     messages = crud.get_latest_messages(db=db)
     return messages
+
 
 
 if __name__ == '__main__':
